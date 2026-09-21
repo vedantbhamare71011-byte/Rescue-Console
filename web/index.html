@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rescue Console | Mission control</title>
+<link rel="stylesheet" href="/style.css">
+<script type="importmap">{"imports":{"three":"/vendor/three.module.js"}}</script>
+</head>
+<body>
+<header>
+  <a class="brand" href="/" aria-label="Rescue Console home"><span class="brand-mark">✦</span><span>RESCUE<span class="thin"> / CONSOLE</span><small>SEARCH & RESCUE · SIH PROTOTYPE</small></span></a>
+  <nav aria-label="Operating mode"><button id="demo" class="selected" aria-pressed="true">Demo sandbox</button><button id="realtime" aria-pressed="false">Realtime</button></nav>
+  <div class="header-status"><span class="dot"></span><span id="server-status">Connecting to local server</span><button id="help">Guide</button></div>
+</header>
+<div class="mode-strip" id="mode-strip"><strong>SIMULATION</strong><span id="mode-description">Virtual drone, synthetic scene and illustrative sensor views. No hardware commands.</span><span class="right-label">LOCAL-FIRST / NO CLOUD</span></div>
+<main>
+<section class="workspace">
+  <div class="section-title"><div><span class="eyebrow">MISSION WORKSPACE</span><h1 id="mission-title">Training ground <span>/ Sector 07</span></h1></div><button id="reset">Reset demo</button></div>
+  <div class="metrics">
+    <article><span>ALTITUDE</span><strong id="altitude">0.0 <small>m</small></strong><em>Above local origin</em></article>
+    <article><span>GROUND SPEED</span><strong id="speed">0.0 <small>m/s</small></strong><em id="motion-status">On landing pad</em></article>
+    <article><span>HEADING</span><strong id="heading">000 <small>°</small></strong><em>Clockwise from north</em></article>
+    <article><span>BATTERY</span><strong id="battery">100 <small>%</small></strong><em id="battery-label">Simulated capacity</em></article>
+  </div>
+  <div class="viewport" id="viewport" tabindex="0" aria-label="3D drone viewport. Click to focus for keyboard flight controls.">
+    <div id="scene"></div>
+    <div class="view-top"><span class="chip" id="scene-label">SYNTHETIC TRAINING MAP</span><div class="view-switch"><button id="orbit" class="selected">Orbit</button><button id="follow">Follow</button><button id="top">Top</button></div></div>
+    <div class="compass">N<span>↑</span><small>1 grid = 2 m</small></div>
+    <div id="empty-state" hidden><strong>No telemetry connected</strong><span>Waiting for position data from your bridge.<br>No simulated location is shown in Realtime.</span></div>
+    <div id="graphics-error" hidden>3D graphics could not start. Enable WebGL in a modern browser and reload.</div>
+    <div class="view-bottom"><span id="coordinates">E 0.0 / N 0.0 / U 0.0 m</span><span id="view-hint">Drag to orbit · Scroll to zoom</span></div>
+  </div>
+  <div class="flight-bar"><div><span class="eyebrow">VIRTUAL FLIGHT</span><strong id="flight-status">Ready on pad</strong></div><div class="actions"><button id="takeoff" class="primary">Take off</button><button id="land">Land here</button><button id="tour">Run demo mission</button><button id="pause">Pause</button></div></div>
+  <div class="control-hint" id="control-hint"><span><kbd>W A S D</kbd> Move</span><span><kbd>R / F</kbd> Rise / descend</span><span><kbd>Q / E</kbd> Turn</span><span><kbd>Space</kbd> Hold</span><span>Click the viewport to fly. Controls move only the virtual drone.</span></div>
+  <div class="lower-grid">
+    <article class="panel feed-panel"><div class="panel-heading"><h2>Onboard view</h2><span id="rgb-label">RENDERED / NOT VIDEO</span></div><div class="feed" id="rgb-feed"><canvas id="rgb-canvas"></canvas><img id="rgb-image" alt="Incoming RGB camera frame" hidden><div class="feed-empty" id="rgb-empty" hidden>No RGB frames received</div><div class="crosshair"></div><span class="feed-caption" id="rgb-caption">SIMULATED RGB CAMERA</span></div></article>
+    <article class="panel feed-panel"><div class="panel-heading"><h2>Thermal illustration</h2><span id="thermal-label">SIMULATED / NOT TEMPERATURE</span></div><div class="feed thermal" id="thermal-feed"><canvas id="thermal-canvas"></canvas><img id="thermal-image" alt="Incoming thermal camera frame" hidden><div class="feed-empty" id="thermal-empty" hidden>No thermal frames received</div><div class="crosshair"></div><span class="feed-caption" id="thermal-caption">ILLUSTRATIVE PALETTE · NO MEASURED °C</span></div></article>
+  </div>
+</section>
+<aside>
+  <section class="panel"><div class="panel-heading"><h2>Mission overview</h2><span class="pill" id="mission-pill">DEMO</span></div><div class="mission-card"><span class="eyebrow">OBJECTIVE</span><h3 id="objective">Survey. Observe. Report.</h3><p id="objective-detail">Explore a fictional disaster site. Practice flight and inspect pre-placed rescue markers.</p><div class="progress"><i id="progress"></i></div><div class="subrow"><span id="progress-text">Demo mission not started</span><span id="timer">00:00</span></div></div><div class="status-rows"><div><span>Telemetry source</span><strong id="source">Browser simulation</strong></div><div><span>Position frame</span><strong>Local ENU / meters</strong></div><div><span>Hardware control</span><strong class="muted">Not enabled</strong></div><div><span>Sample age</span><strong id="sample-age">Synthetic</strong></div></div></section>
+  <section class="panel"><div class="panel-heading"><h2>Site annotations</h2><span id="marker-count">3 FIXTURES</span></div><div id="annotations"><button class="annotation" data-marker="0"><span class="annotation-icon person">01</span><span><strong>Practice rescue point</strong><small>Pre-placed figure · not an AI detection</small></span><span>↗</span></button><button class="annotation" data-marker="1"><span class="annotation-icon hazard">02</span><span><strong>Hazard exercise</strong><small>Illustrative hot spot · not sensor data</small></span><span>↗</span></button><button class="annotation" data-marker="2"><span class="annotation-icon person">03</span><span><strong>Assembly point</strong><small>Fictional evacuation marker</small></span><span>↗</span></button></div><p id="annotation-empty" class="note" hidden>No detection pipeline connected. Live person/hazard detection is not implemented in this prototype.</p></section>
+  <section class="panel"><div class="panel-heading"><h2>System architecture</h2><button id="architecture">Expand</button></div><div class="pipeline"><span>Camera / sensors</span><b>↓</b><span>Jetson · processing bridge</span><b>↓</b><span class="active-node">Local server · dashboard</span></div><p class="note">Architecture reference only. No ROS, Pixhawk, AI detection or physical flight integration is claimed.</p></section>
+  <section class="panel log-panel"><div class="panel-heading"><h2>Session log</h2><button id="export">Export</button></div><ol id="log" aria-live="polite"></ol></section>
+</aside>
+</main>
+<footer><span>RESCUE CONSOLE / PROTOTYPE 01</span><span>Not a certified rescue or navigation system. Always verify observations independently.</span></footer>
+<dialog id="guide-dialog"><button class="close" data-close>Close</button><span class="eyebrow">PRESENTATION GUIDE</span><h2>A real interface. An honest demo.</h2><p><b>Demo sandbox:</b> Take off, click the viewport, then use WASD, R/F and Q/E. Run demo mission for an automatic virtual circuit. Click annotations to focus them. Orbit, Follow and Top change only your camera.</p><p><b>Realtime:</b> Displays externally supplied position and attitude on an empty coordinate grid. It never falls back to demo data. Data older than 3 seconds is marked stale. Flight controls are disabled.</p><p><b>Camera views:</b> Demo views are rendered graphics, not real video or thermal measurements. Realtime accepts JPEG frames via the documented local API.</p><p><b>Offline:</b> Everything is bundled locally. Copy this folder to a laptop with Python 3.9+ and a WebGL-capable browser. Run <code>python server.py</code>, then open <code>http://127.0.0.1:8787</code>.</p><p>See README.md for authenticated telemetry, coordinate conventions and the optional SSH tunnel. The producer token appears only in the server terminal.</p></dialog>
+<dialog id="architecture-dialog"><button class="close" data-close>Close</button><span class="eyebrow">REFERENCE ARCHITECTURE</span><h2>From observation to mission awareness.</h2><div class="architecture-grid"><article><h3>01 / Sensors</h3><p>RGB · Thermal · LiDAR / ToF · GPS / IMU</p><small>Planned hardware inputs</small></article><article><h3>02 / Jetson</h3><p>Processing, mapping and telemetry conversion</p><small>External bridge not connected</small></article><article><h3>03 / Local server</h3><p>Authenticated telemetry and JPEG ingestion</p><small>Implemented in this prototype</small></article><article><h3>04 / Dashboard</h3><p>3D pose, views, status and demo flight</p><small>Implemented in this prototype</small></article></div><p>Separate proposed flight chain: Jetson ↔ Pixhawk → ESCs → Motors. This application does not implement that chain or send arm, takeoff, motor or flight commands.</p></dialog>
+<script type="module" src="/app.js"></script>
+</body></html>
